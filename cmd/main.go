@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"go-fiber-rest-api/pkg/config"
-	"go-fiber-rest-api/pkg/user"
+	"go-fiber-rest-api/pkg/routes"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -19,18 +19,10 @@ func main() {
 
 	fmt.Println(database.Config)
 
-	repo := user.NewRepository(database)
-	err = repo.Migration()
-	if err != nil{
-		log.Fatal(err)
-	}
-
-	service := user.NewService(repo)
-	handler := user.NewHandler(service)
-
 	app := fiber.New()
-	app.Get("/users/:id", handler.Get)
-	app.Post("/users/", handler.Create)
+
+	//users
+	routes.UserRoutes(app,database)
 
 	app.Listen(":8000")
 
