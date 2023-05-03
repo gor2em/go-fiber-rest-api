@@ -22,4 +22,5 @@ func UserRoutes(router *fiber.App, db *gorm.DB){
 	//forgot-password
 	//reset-password
 	userRouter.Get("/:id", userHandler.GetUserByID)
+	userRouter.Post("/", userHandler.Register)
 }

@@ -22,3 +22,7 @@ func (s *UserService) GetUserByID(id uint) (*model.User, error) {
 	}
 	return user, nil
 }
+
+func (s *UserService) Register(user *model.User) error{
+	return s.userRepo.Create(user)
+}

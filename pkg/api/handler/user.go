@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"go-fiber-rest-api/pkg/model"
 	"go-fiber-rest-api/pkg/service"
 	"strconv"
 
@@ -9,6 +10,11 @@ import (
 
 type UserHandler struct {
 	userService *service.UserService
+}
+
+type Response struct{
+	Error string `json:"error"`
+	Data interface{} `json:"data"`
 }
 
 func NewUserHandler(userService *service.UserService) *UserHandler {
@@ -32,17 +38,27 @@ func (h *UserHandler) GetUserByID(ctx *fiber.Ctx) error {
 	return ctx.JSON(user)
 }
 
-// func (h handler) Create (c *fiber.Ctx) error {
-// 	model := Model{}
-// 	err := c.BodyParser(&model)
-// 	if err != nil {
-// 		return c.Status(400).JSON(Response{Error: err.Error()})
-// 	}
+func (h *UserHandler) Register (c *fiber.Ctx) error {
 
-// 	_, err = h.service.Create(model)
-// 	if err != nil {
-// 		return c.Status(400).JSON(Response{Error: err.Error()})
-// 	}
+	var payload *model.SignUpInput
 
-// 	return c.Status(201).JSON("OK")
-// }
+	// Parse request body
+	if err := c.BodyParser(&payload); err != nil {
+		return err
+	}
+
+	user := &model.User{
+		Username: payload.Username,
+		Email: payload.Email,
+		Password: payload.Password,
+	}
+	
+    if err := h.userService.Register(user); err != nil {
+        return err
+    }
+
+    return c.JSON(fiber.Map{
+        "message": "User created successfully",
+		"user":payload,
+    })
+}
