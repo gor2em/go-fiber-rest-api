@@ -19,21 +19,52 @@ func NewBaseRepository(db *gorm.DB) BaseRepository {
 }
 
 func (repo *baseRepository) Get(id uint, model interface{}) error {
-	return repo.db.First(model, id).Error
+	err := repo.db.First(id, model).Error
+
+	if err != nil {
+		return err
+	}
+	
+	return nil
+
 }
 
 func (repo *baseRepository) Create(model interface{}) error {
-	return repo.db.Create(model).Error
+	err := repo.db.Create(model).Error
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (repo *baseRepository) Update (id uint,model interface{}) error{
-	return repo.db.Save(model).Error
+	err := repo.db.Save(model).Error
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (repo *baseRepository) Delete (id uint, model interface{}) error{
-	return repo.db.Delete(id, model).Error
+	err := repo.db.Delete(id, model).Error
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (repo *baseRepository) Find(model interface{}, where ...interface{}) error {
-	return repo.db.Find(model, where...).Error
+	err := repo.db.Find(model, where...).Error;
+	
+	if err != nil{
+		return err;
+	}
+
+	return nil
 }
