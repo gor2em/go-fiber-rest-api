@@ -7,6 +7,7 @@ type BaseRepository interface {
 	Create(model interface{}) error
 	Update(id uint, model interface{}) error
 	Delete(id uint, model interface{}) error
+	Find(model interface{}, where ...interface{}) error
 }
 
 type baseRepository struct {
@@ -31,4 +32,8 @@ func (repo *baseRepository) Update (id uint,model interface{}) error{
 
 func (repo *baseRepository) Delete (id uint, model interface{}) error{
 	return repo.db.Delete(id, model).Error
+}
+
+func (repo *baseRepository) Find(model interface{}, where ...interface{}) error {
+	return repo.db.Find(model, where...).Error
 }

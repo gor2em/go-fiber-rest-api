@@ -26,3 +26,15 @@ func (s *UserService) GetUserByID(id uint) (*model.User, error) {
 func (s *UserService) Register(user *model.User) error{
 	return s.userRepo.Create(user)
 }
+
+func (s *UserService) Login(email string) (*model.User, error){
+
+	user, err := s.userRepo.FindUser(email)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+
+}
+

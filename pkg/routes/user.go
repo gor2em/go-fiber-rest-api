@@ -14,13 +14,11 @@ func UserRoutes(router *fiber.App, db *gorm.DB){
 	userService := service.NewUserService(userRepository)
 	userHandler := handler.NewUserHandler(userService)
 	
-	userRouter := router.Group("/users")
-
-	//register
-	//login,
+	userRouter := router.Group("/users")	
+	userRouter.Post("/register", userHandler.Register)
+	userRouter.Post("/login", userHandler.Login)
+	
 	//update
 	//forgot-password
 	//reset-password
-	userRouter.Get("/:id", userHandler.GetUserByID)
-	userRouter.Post("/", userHandler.Register)
 }

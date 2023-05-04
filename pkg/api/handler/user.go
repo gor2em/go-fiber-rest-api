@@ -3,7 +3,7 @@ package handler
 import (
 	"go-fiber-rest-api/pkg/model"
 	"go-fiber-rest-api/pkg/service"
-	"strconv"
+	"go-fiber-rest-api/pkg/utils"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -21,36 +21,61 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 
-func (h *UserHandler) GetUserByID(ctx *fiber.Ctx) error {
-	// Get user ID from URL parameter
-	id, err := strconv.Atoi(ctx.Params("id"))
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
+func (h *UserHandler) Login(c *fiber.Ctx) error {
+	var loginData model.SignInInput
+
+	if err := c.BodyParser(&loginData); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
 	}
 
-	// Call service to get user by ID
-	user, err := h.userService.GetUserByID(uint(id))
+	user, err := h.userService.Login(loginData.Email)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get user"})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid email or password",
+		})
 	}
 
-	// Return user as JSON response
-	return ctx.JSON(user)
+	err = utils.CompareHashPassword(user.Password, loginData.Password)
+	
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": "Invalid email or Password"})
+	}
+
+	// Generate Token
+	token, err := utils.GenerateAccessToken(user.ID, user.Email)
+	if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to generate JWT token",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message":"Login success.",
+		"user":    model.FilterUserRecord(user),
+		"status":fiber.StatusOK,
+		"token":token,
+	})
 }
 
 func (h *UserHandler) Register (c *fiber.Ctx) error {
 
 	var payload *model.SignUpInput
 
+	//validations
 	// Parse request body
 	if err := c.BodyParser(&payload); err != nil {
 		return err
 	}
 
+	hashedPassword, _ := utils.GenerateHashPassword(payload.Password)
+
 	user := &model.User{
+		Name: payload.Name,
+		Surname: payload.Surname,
 		Username: payload.Username,
 		Email: payload.Email,
-		Password: payload.Password,
+		Password: hashedPassword,
+		Company: payload.Company,
 	}
 	
     if err := h.userService.Register(user); err != nil {
@@ -59,6 +84,6 @@ func (h *UserHandler) Register (c *fiber.Ctx) error {
 
     return c.JSON(fiber.Map{
         "message": "User created successfully",
-		"user":payload,
+		"user":model.FilterUserRecord(user),
     })
 }
