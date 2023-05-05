@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"errors"
 	"go-fiber-rest-api/pkg/model"
 
 	"gorm.io/gorm"
@@ -10,7 +9,7 @@ import (
 type UserRepository interface {
 	BaseRepository
 
-	FindUser(email string) (*model.User, error)
+	FindUserByEmail(email string) (*model.User, error)
 }
 
 type userRepository struct {
@@ -25,14 +24,13 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	}
 }
 
-
-func (repo *userRepository) FindUser(email string) (*model.User, error) {
+func (repo *userRepository) FindUserByEmail(email string) (*model.User, error) {
 	var user model.User
 	err := repo.db.Where("email = ?", email).First(&user).Error
 
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
+	if err != nil {
+		return nil, err
 	}
-	
-	return &user, err
+
+	return &user, nil
 }

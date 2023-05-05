@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"go-fiber-rest-api/pkg/config"
-	"go-fiber-rest-api/pkg/model"
 	"go-fiber-rest-api/pkg/routes"
 	"log"
 
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -20,13 +20,17 @@ func main() {
 
 	fmt.Println(database.Config)
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+        JSONEncoder: json.Marshal,
+        JSONDecoder: json.Unmarshal,
+    })
 
 	// CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-	database.AutoMigrate(&model.User{})
+	// database.AutoMigrate(&model.User{})
 
-	//users
-	routes.UserRoutes(app,database)
+	//routes
+	routes.UserRoutes(app, database)
+
 
 	app.Listen(":8000")
 
