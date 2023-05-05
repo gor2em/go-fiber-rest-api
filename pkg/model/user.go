@@ -9,8 +9,8 @@ import (
 // User Model
 type User struct {
 	ID       	*uuid.UUID   	`gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
-	Name	 	string 			`gorm:"type:varchar(50)"`
-	Surname	 	string 			`gorm:"type:varchar(50)"`
+	Name	 	string 			`gorm:"type:varchar(50);default:null"`
+	Surname	 	string 			`gorm:"type:varchar(50);default:null"`
 	Email    	string 			`gorm:"type:varchar(100);uniqueIndex;not null"`
 	Username    string 			`gorm:"type:varchar(30);uniqueIndex;not null"`
 	Password    string 			`gorm:"type:varchar(60);not null"`
@@ -19,13 +19,14 @@ type User struct {
 	UpdatedAt 	*time.Time 		`gorm:"not null;default:now()"`
 }
 
-type SignUpInput struct{
-	Name		string			`json:"name"`
-	Surname		string			`json:"surname"`
-	Email		string			`json:"email" validate:"required, email"`
-	Username	string			`json:"username" validate:"required, min=3, max=60"`
-	Password	string			`json:"password" validate:"required, min=3"`
-	Company		string			`json:"company" validate:"required, min=3"`
+
+type RegisterRequest struct{
+	Name		string			`validate:"required,min=3"`
+	Surname		string			`validate:"required,min=3"`
+	Email		string			`validate:"required,email"`
+	Username	string			`validate:"required,min=3,max=60"`
+	Password	string			`validate:"required,min=3"`
+	Company		string			`validate:"required,min=3"`
 }
 
 type LoginRequest struct {

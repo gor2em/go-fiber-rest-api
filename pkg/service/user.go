@@ -18,10 +18,25 @@ func NewUserService(userRepo repository.UserRepository) *UserService {
 	return &UserService{userRepo: userRepo}
 }
 
-func (s *UserService) Register(user *model.User) error{
-	return s.userRepo.Create(user)
-}
+func (s *UserService) Register(user *model.User) (*model.User, error) {
 
+	exists, err := s.userRepo.Where(&model.User{}, "email = ? OR username = ?", user.Email, user.Username)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if exists {
+		return nil, fiber.NewError(fiber.ErrConflict.Code, fiber.ErrConflict.Message)
+	}
+
+	_, err = s.userRepo.Create(user)
+	if err != nil {
+		return nil, fiber.NewError(fiber.StatusBadRequest, fiber.ErrBadRequest.Message)
+	}
+
+	return user, nil
+}
 
 func (s *UserService) Login(email, password string) (*model.User, error){
 	user, err := s.userRepo.FindUserByEmail(email)

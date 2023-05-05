@@ -54,33 +54,37 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 	})
 }
 
-func (h *UserHandler) Register (c *fiber.Ctx) error {
+func (h *UserHandler) Register(c *fiber.Ctx) error {
+	var req model.RegisterRequest
 
-	var payload *model.SignUpInput
-
-	//validations
-	// Parse request body
-	if err := c.BodyParser(&payload); err != nil {
-		return err
-	}
-
-	hashedPassword, _ := utils.GenerateHashPassword(payload.Password)
-
-	user := &model.User{
-		Name: payload.Name,
-		Surname: payload.Surname,
-		Username: payload.Username,
-		Email: payload.Email,
-		Password: hashedPassword,
-		Company: payload.Company,
+	if err := c.BodyParser(&req); err != nil {
+		return middleware.ErrorHandler(c, err, &fiber.ErrBadRequest.Code, &fiber.ErrBadRequest.Message)
 	}
 	
-    if err := h.userService.Register(user); err != nil {
-        return err
-    }
+	errors := middleware.ValidateStruct(req)
+	if errors != nil {
+	   return c.Status(fiber.StatusBadRequest).JSON(errors)
+	}
+	
+	hashedPassword, _ := utils.GenerateHashPassword(req.Password)
 
-    return c.JSON(fiber.Map{
-        "message": "User created successfully",
-		"user":model.FilterUserRecord(user),
-    })
+	user := &model.User{
+		Name: req.Name,
+		Surname: req.Surname,
+		Username: req.Username,
+		Email: req.Email,
+		Password: hashedPassword,
+		Company: req.Company,
+	}
+
+	user, err := h.userService.Register(user)
+	if err != nil {
+		if e, ok := err.(*fiber.Error); ok{
+			return middleware.ErrorHandler(c, err, &e.Code, &e.Message)
+		}
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"user":    model.FilterUserRecord(user),
+	})
 }

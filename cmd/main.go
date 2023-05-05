@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"go-fiber-rest-api/pkg/config"
+	"go-fiber-rest-api/pkg/model"
 	"go-fiber-rest-api/pkg/routes"
 	"log"
 
@@ -26,7 +27,7 @@ func main() {
     })
 
 	// CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-	// database.AutoMigrate(&model.User{})
+	database.AutoMigrate(&model.User{})
 
 	//routes
 	routes.UserRoutes(app, database)

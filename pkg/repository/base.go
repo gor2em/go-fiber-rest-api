@@ -4,10 +4,10 @@ import "gorm.io/gorm"
 
 type BaseRepository interface {
 	Get(id uint, model interface{}) error
-	Create(model interface{}) error
+	Create(model interface{}) (interface{}, error)
 	Update(id uint, model interface{}) error
 	Delete(id uint, model interface{}) error
-	Find(model interface{}, where ...interface{}) error
+	Where(model interface{}, query string, args... interface{}) (bool, error)
 }
 
 type baseRepository struct {
@@ -29,17 +29,12 @@ func (repo *baseRepository) Get(id uint, model interface{}) error {
 
 }
 
-func (repo *baseRepository) Create(model interface{}) error {
+func (repo *baseRepository) Create(model interface{}) (interface{}, error) {
 	err := repo.db.Create(model).Error
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return model, err
 }
 
-func (repo *baseRepository) Update (id uint,model interface{}) error{
+func (repo *baseRepository) Update(id uint,model interface{}) error{
 	err := repo.db.Save(model).Error
 
 	if err != nil {
@@ -49,7 +44,7 @@ func (repo *baseRepository) Update (id uint,model interface{}) error{
 	return nil
 }
 
-func (repo *baseRepository) Delete (id uint, model interface{}) error{
+func (repo *baseRepository) Delete(id uint, model interface{}) error{
 	err := repo.db.Delete(id, model).Error
 
 	if err != nil {
@@ -59,12 +54,17 @@ func (repo *baseRepository) Delete (id uint, model interface{}) error{
 	return nil
 }
 
-func (repo *baseRepository) Find(model interface{}, where ...interface{}) error {
-	err := repo.db.Find(model, where...).Error;
-	
-	if err != nil{
-		return err;
+func (repo *baseRepository) Where(model interface{}, query string, args ...interface{}) (bool, error) {
+	var count int64
+	err := repo.db.Model(model).Where(query, args...).Count(&count).Error
+
+	if err != nil {
+		return false, err
 	}
 
-	return nil
+	if count > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }
